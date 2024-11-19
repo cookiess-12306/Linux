@@ -56,10 +56,11 @@ public:
         }
         return fu;
     }
-
     void PrintDebug()
     {
-        printf("当前有%d个线程\n", _threads.size());
+        //std::unique_lock<std::mutex> lock(_mutex);
+        std::thread::id thread_id = std::this_thread::get_id();
+        std::cout << "当前子线程是: " << thread_id << std::endl; 
     }
 
 private:
@@ -73,6 +74,7 @@ private:
             // 加锁
             {
                 std::unique_lock<std::mutex> lock(_mutex);
+                PrintDebug();
                 // 等待
                 _cv.wait(lock, [this]()
                          { return _stop || !_tasks.empty(); });
@@ -87,9 +89,9 @@ private:
     }
 
 private:
-    std::mutex _mutex;
-    std::condition_variable _cv;
-    std::vector<Functor> _tasks;
-    std::vector<std::thread> _threads;
     std::atomic<bool> _stop;
+    std::mutex _mutex;//互斥锁
+    std::condition_variable _cv;//条件变量
+    std::vector<Functor> _tasks;//任务池
+    std::vector<std::thread> _threads;//线程池
 };
